@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css"> 
+   <title>Registration Form</title> 
+</head>
+<body>
+    <form id="registrationForm">
+        <h1>Registration Form</h1>
+        
+        <div class="input-group">
+            <label for="fullName">Full Name:</label>
+            <i class="fas fa-user icon"></i>
+            <input type="text" id="fullName" name="fullName" placeholder="Enter your full name" required>
+            <div class="error" id="fullNameError"></div>
+        </div>
+
+        <div class="input-group">
+            <label for="username">Username:</label>
+            <i class="fas fa-user-tag icon"></i>
+            <input type="text" id="username" name="username" placeholder="Enter your username" required>
+            <div class="error" id="usernameError"></div>
+        </div>
+
+        <div class="input-group">
+            <label for="email">Email:</label>
+            <i class="fas fa-envelope icon"></i>
+            <input type="email" id="email" name="email" placeholder="Enter your email address" required>
+            <div class="error" id="emailError"></div>
+        </div>
+
+        <div class="input-group">
+            <label for="password">Password:</label>
+            <i class="fas fa-lock icon"></i>
+            <input type="password" id="password" name="password" placeholder="Enter your password" required>
+            <div class="error" id="passwordError"></div>
+            <div id="passwordStrength"></div>
+        </div>
+
+        <div class="input-group">
+            <label for="message">Message:</label>
+            <i class="fas fa-comment icon"></i>
+            <textarea id="message" name="message" placeholder="Enter your message" required></textarea>
+            <div class="error" id="messageError"></div>
+        </div>
+
+        <button type="submit">Register</button>
+        <div id="loading" class="loading">Submitting...</div>
+    </form>
+
+
+
+    <script>
+        const registrationForm = document.getElementById('registrationForm');
+        const loadingIndicator = document.getElementById('loading');
+
+        registrationForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            clearErrors();
+
+            const fullName = document.getElementById('fullName').value.trim();
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const message = document.getElementById('message').value.trim();
+
+            if (!validateForm(fullName, username, email, password, message)) return;
+
+            try {
+                loadingIndicator.style.display = 'block';
+
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ fullName, username, email, password, message })
+                });
+
+                const result = await response.text();
+                alert(result);
+            } catch (error) {
+                alert('An error occurred while submitting the form. Please try again.');
+            } finally {
+                loadingIndicator.style.display = 'none';
+            }
+        });
+
+        function clearErrors() {
+            document.querySelectorAll('.error').forEach(error => error.textContent = '');
+        }
+
+        function validateForm(fullName, username, email, password, message) {
+            let isValid = true;
+
+            if (fullName === '') {
+                showError('fullNameError', 'Full Name is required');
+                isValid = false;
+            }
+            if (username === '') {
+                showError('usernameError', 'Username is required');
+                isValid = false;
+            }
+            if (email === '') {
+                showError('emailError', 'Email is required');
+                isValid = false;
+            } else if (!validateEmail(email)) {
+                showError('emailError', 'Invalid email address');
+                isValid = false;
+            }
+            if (password === '') {
+                showError('passwordError', 'Password is required');
+                isValid = false;
+            } else {
+                showPasswordStrength(password);
+            }
+            if (message === '') {
+                showError('messageError', 'Message is required');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function showError(elementId, message) {
+            document.getElementById(elementId).textContent = message;
+        }
+
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        function showPasswordStrength(password) {
+            const strength = document.getElementById('passwordStrength');
+            const weakRegex = /(?=.{6,})/;
+            const mediumRegex = /(?=.{8,})((?=.*\d)|(?=.*[A-Z]))/;
+            const strongRegex = /(?=.{8,})(?=.*\d)(?=.*[A-Z])(?=.*\W)/;
+
+            if (strongRegex.test(password)) {
+                strength.textContent = 'Password Strength: Strong';
+                strength.style.color = 'green';
+            } else if (mediumRegex.test(password)) {
+                strength.textContent = 'Password Strength: Medium';
+                strength.style.color = 'orange';
+            } else if (weakRegex.test(password)) {
+                strength.textContent = 'Password Strength: Weak';
+                strength.style.color = 'red';
+            } else {
+                strength.textContent = '';
+            }
+        }
+    </script>
+</body>
+</html>
+
+
